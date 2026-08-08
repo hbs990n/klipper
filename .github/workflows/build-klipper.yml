@@ -86,7 +86,7 @@ jobs:
       - name: Configure (only klipper module)
         run: |
           cmake -G Ninja \
-            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }}" \
             -DCMAKE_INSTALL_PREFIX=/opt/trinity \
             -DCMAKE_SKIP_RPATH=OFF \
@@ -129,6 +129,10 @@ jobs:
           echo "=== staged tree (files) ==="
           find /tmp/tde-install -type f | head -60
           echo "=== staged tree (bin+lib) ==="
+          find /tmp/tde-install -type f \( -path "*bin*" -o -path "*lib*" \) -exec ls -la {} \;
+          echo "=== stripping debug symbols ==="
+          strip --strip-unneeded /tmp/tde-install/opt/trinity/bin/* /tmp/tde-install/opt/trinity/lib/*.so /tmp/tde-install/opt/trinity/lib/trinity/*.so 2>/dev/null || true
+          echo "=== after strip ==="
           find /tmp/tde-install -type f \( -path "*bin*" -o -path "*lib*" \) -exec ls -la {} \;
 
       - name: Upload full build log
