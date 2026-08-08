@@ -1,0 +1,87 @@
+name: Build klipper
+
+# 强制全新编译 klipper 模块, 用 ninja 一次性暴露所有编译错误/警告。
+# 手动触发: Actions -> Build klipper -> Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      tdebase_branch:
+        description: 'tdebase 分支 (与你的 klipper 源码版本对应)'
+        required: false
+        default: 'master'
+      extra_cxxflags:
+        description: '附加 CXXFLAGS (空格分隔)'
+        required: false
+        default: '-Wall -Wextra -Wunused'
+  push:
+    paths:
+      - 'klipper/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add Trinity apt repository
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends gnupg wget ca-certificates
+          wget http://mirror.ppa.trinitydesktop.org/trinity/deb/trinity-keyring.deb
+          dpkg -i trinity-keyring.deb
+          echo "deb http://mirror.ppa.trinitydesktop.org/trinity/deb/trinity-r14.1.x bookworm main deps" > /etc/apt/sources.list.d/tde.list
+          apt-get update
+
+      - name: Install build dependencies
+        run: |
+          apt-get install -y --no-install-recommends \
+            build-essential git cmake ninja-build pkg-config \
+            tde-cmake \
+            libtqt3-mt-dev \
+            libtqtinterface-dev \
+            tdelibs14-trinity-dev \
+            libxtst-dev libx11-dev libxfixes-dev \
+            zlib1g-dev
+
+      - name: Checkout tdebase and overlay klipper sources
+        run: |
+          git clone --depth 1 --branch "${{ github.event.inputs.tdebase_branch || 'master' }}" \
+            https://mirror.git.trinitydesktop.org/gitea/TDE/tdebase /tmp/tdebase
+          rm -rf /tmp/tdebase/klipper
+          cp -r $GITHUB_WORKSPACE/klipper /tmp/tdebase/klipper
+          echo "TDEBASE: $(git -C /tmp/tdebase rev-parse --short HEAD)"
+
+      - name: Configure (only klipper module)
+        run: |
+          cmake -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }}" \
+            -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }}" \
+            -DCMAKE_INSTALL_PREFIX=/opt/trinity \
+            -DCMAKE_SKIP_RPATH=OFF \
+            -DBUILD_KLIPPER=ON \
+            -DBUILD_ALL=OFF \
+            -DWITH_ALL_OPTIONS=OFF \
+            -S /tmp/tdebase \
+            -B /tmp/tdebase/build
+
+      - name: Build klipper (keep going, expose all problems)
+        run: |
+          cd /tmp/tdebase
+          set +e
+          ninja -k 0 -C build klipper 2>&1 | tee /tmp/klipper-build.log
+          EXIT=${PIPESTATUS[0]}
+          echo "=== compile problems ==="
+          grep -E "error:|warning:" /tmp/klipper-build.log || echo "(none)"
+          echo "=== error count: $(grep -c "error:" /tmp/klipper-build.log || true) ==="
+          exit $EXIT
+
+      - name: Upload full build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klipper-build.log
+          path: /tmp/klipper-build.log
