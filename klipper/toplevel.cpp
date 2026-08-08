@@ -131,8 +131,8 @@ KlipperWidget::KlipperWidget( TQWidget *parent, TDEConfig* config )
     , locklevel( 0 )
     , m_config( config )
     , m_pendingContentsCheck( false )
-    , m_pendingUserPaste( false )
     , session_managed( new KlipperSessionManaged( this ))
+    , m_pendingUserPaste( false )
 {
     tqt_qclipboard_bailout_hack = true;
 
