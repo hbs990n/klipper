@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=Klipper
+
+GenericName=Clipboard Tool
+
+Comment=A cut & paste history utility
+
+Exec=klipper
+Icon=klipper
+Type=Application
+X-DocPath=klipper/index.html
+Terminal=false
+X-TDE-autostart-after=panel
+X-TDE-StartupNotify=false
+X-DCOP-ServiceType=Unique
+X-TDE-Library=klipper_panelapplet
+X-TDE-UniqueApplet=true
+X-TDE-autostart-condition=klipperrc:General:AutoStart:true
+OnlyShowIn=TDE;
+Categories=Qt;TDE;Utility;X-TDE-Utilities-Desktop;

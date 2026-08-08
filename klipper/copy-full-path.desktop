@@ -1,0 +1,8 @@
+[Desktop Entry]
+X-TDE-ServiceTypes=all/allfiles,inode/directory
+Actions=CopyFullPath
+
+[Desktop Action CopyFullPath]
+Name=Copy full path
+Icon=edit-copy
+Exec=klipper; dcop klipper klipper setClipboardContents "%U"

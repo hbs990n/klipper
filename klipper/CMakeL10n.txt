@@ -1,0 +1,9 @@
+##### create translation templates ##############
+
+tde_l10n_create_template( "klipper" )
+
+tde_l10n_create_template(
+    CATALOG "desktop_files/klipper-desktops/"
+    SOURCES *.desktop
+    DESTINATION "${CMAKE_SOURCE_DIR}/translations"
+)
