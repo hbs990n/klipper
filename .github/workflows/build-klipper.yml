@@ -89,7 +89,7 @@ jobs:
         run: |
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }} -include /opt/trinity/include/tdecompat.h" \
+            -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }} -I/opt/trinity/include -include /opt/trinity/include/tdecompat.h" \
             -DCMAKE_INSTALL_PREFIX=/opt/trinity \
             -DCMAKE_SKIP_RPATH=OFF \
             -DBUILD_KLIPPER=ON \
