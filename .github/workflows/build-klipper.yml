@@ -30,9 +30,9 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends gnupg wget ca-certificates
-          wget http://mirror.ppa.trinitydesktop.org/trinity/deb/trinity-keyring.deb
+          wget http://ftp.fau.de/trinity/deb/trinity-keyring.deb
           dpkg -i trinity-keyring.deb
-          echo "deb http://mirror.ppa.trinitydesktop.org/trinity/deb/trinity-r14.1.x bookworm main deps" > /etc/apt/sources.list.d/tde.list
+          echo "deb http://ftp.fau.de/trinity/deb/trinity-r14.1.x bookworm main deps" > /etc/apt/sources.list.d/tde.list
           apt-get update
 
       - name: Install build dependencies
