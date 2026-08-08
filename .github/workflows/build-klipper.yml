@@ -114,3 +114,12 @@ jobs:
         with:
           name: klipper-build.log
           path: /tmp/klipper-build.log
+
+      - name: Upload klipper binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klipper-binaries
+          path: |
+            /tmp/tdebase/build/klipper/klipper*
+          if-no-files-found: warn
