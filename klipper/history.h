@@ -125,6 +125,11 @@ signals:
     void changed();
 
     /**
+     * Emitted when the user has picked an item from the popup menu.
+     */
+    void topSelected();
+
+    /**
      * Emitted when the first history item has changed.
      */
     void topChanged();

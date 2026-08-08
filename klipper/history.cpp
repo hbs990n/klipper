@@ -114,6 +114,7 @@ void History::slotMoveToTop(int pos ) {
     }
     HistoryItem* item = itemList.take();
     itemList.prepend( item );
+    emit topSelected();
     emit changed();
     emit topChanged();
 }

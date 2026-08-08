@@ -156,6 +156,17 @@ private slots:
     void slotCheckPending();
     void slotDelayedSetClipboard();
 
+    /**
+     * Set the flag that the user just picked an item from the history popup.
+     */
+    void markUserPastePending();
+
+    /**
+     * Auto-paste the newly selected history item into the widget
+     * that currently has focus, by simulating a Ctrl+V keypress.
+     */
+    void simulatePaste();
+
 private:
 
     TQClipboard *clip;
@@ -211,6 +222,18 @@ private:
 
     bool blockFetchingNewData();
     KlipperSessionManaged* session_managed;
+
+    /**
+     * Set when the user picks an item from the history popup menu.
+     * Consumed by slotHistoryTopChanged() to trigger an auto-paste.
+     */
+    bool m_pendingUserPaste;
+
+    /**
+     * Small delay before simulating the paste, so that the popup menu
+     * is fully closed and keyboard focus is back on the target window.
+     */
+    TQTimer m_autoPasteTimer;
 };
 
 class Klipper : public KlipperWidget
