@@ -66,13 +66,22 @@ jobs:
              /opt/trinity/include/tdestandarddirs.h /opt/trinity/include/tdesimpleconfig.h \
              /opt/trinity/include/tdeuniqueapplication.h
 
-      - name: Checkout tdebase and overlay klipper sources
+      - name: Download tdebase source (archive) and overlay klipper sources
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.tdebase_branch || 'master' }}" \
-            https://mirror.git.trinitydesktop.org/gitea/TDE/tdebase /tmp/tdebase
+          BRANCH="${{ github.event.inputs.tdebase_branch || 'master' }}"
+          for i in 1 2 3 4 5; do
+            if wget -q --tries=3 --timeout=60 -O /tmp/tdebase.tar.gz \
+              "https://mirror.git.trinitydesktop.org/gitea/api/v1/repos/TDE/tdebase/archive/${BRANCH}.tar.gz"; then
+              break
+            fi
+            echo "download attempt $i failed, retrying..."
+            sleep 10
+          done
+          mkdir -p /tmp/tdebase
+          tar -xzf /tmp/tdebase.tar.gz -C /tmp/tdebase --strip-components=1
           rm -rf /tmp/tdebase/klipper
           cp -r $GITHUB_WORKSPACE/klipper /tmp/tdebase/klipper
-          echo "TDEBASE: $(git -C /tmp/tdebase rev-parse --short HEAD)"
+          echo "tdebase extracted: $(ls /tmp/tdebase | wc -l) entries"
 
       - name: Configure (only klipper module)
         run: |
