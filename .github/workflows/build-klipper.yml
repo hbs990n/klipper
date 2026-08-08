@@ -58,9 +58,24 @@ jobs:
           test -f /opt/trinity/include/tdeuniqueapplication.h || {
             printf '#include "kuniqueapplication.h"\ntypedef KUniqueApplication TDEUniqueApplication;\n' > /opt/trinity/include/tdeuniqueapplication.h
           }
+          # master 源码里其余改名符号: tdeApp(14.1.6=kapp), TWinModule(14.1.6=KWinModule)
+          # 统一放在 tdecompat.h, 通过 -include 强制注入
+          cat > /opt/trinity/include/tdecompat.h <<'EOF'
+#ifndef TDEKLI_COMPAT_H
+#define TDEKLI_COMPAT_H
+#include <tdeapplication.h>
+#include <twinmodule.h>
+#ifndef tdeApp
+#define tdeApp kapp
+#endif
+#ifndef TWinModule
+#define TWinModule KWinModule
+#endif
+#endif
+EOF
           ls /opt/trinity/include/tdeglobalaccel.h /opt/trinity/include/tdeprocess.h \
              /opt/trinity/include/tdestandarddirs.h /opt/trinity/include/tdesimpleconfig.h \
-             /opt/trinity/include/tdeuniqueapplication.h
+             /opt/trinity/include/tdeuniqueapplication.h /opt/trinity/include/tdecompat.h
 
       - name: Checkout tdebase and overlay klipper sources
         run: |
@@ -74,8 +89,7 @@ jobs:
         run: |
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_C_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }}" \
-            -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }}" \
+            -DCMAKE_CXX_FLAGS="${{ github.event.inputs.extra_cxxflags || '-Wall -Wextra' }} -include /opt/trinity/include/tdecompat.h" \
             -DCMAKE_INSTALL_PREFIX=/opt/trinity \
             -DCMAKE_SKIP_RPATH=OFF \
             -DBUILD_KLIPPER=ON \
