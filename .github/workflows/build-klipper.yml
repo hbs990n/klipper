@@ -46,6 +46,22 @@ jobs:
             libxtst-dev libx11-dev libxfixes-dev \
             zlib1g-dev
 
+      - name: Generate missing tde* compat headers (tdelibs 14.1.6 vs master klipper)
+        shell: bash
+        run: |
+          # 14.1.6 包内类名已是 TDE*, 但头文件名还是 k*.h, 生成转发头补齐
+          for pair in "tdeglobalaccel.h kglobalaccel.h" "tdeprocess.h kprocess.h" "tdestandarddirs.h kstandarddirs.h" "tdesimpleconfig.h ksimpleconfig.h"; do
+            set -- $pair
+            test -f /opt/trinity/include/$1 || printf '#include "%s"\n' "$2" > /opt/trinity/include/$1
+          done
+          # TDEUniqueApplication: 14.1.6 里类名仍是 KUniqueApplication, 需要 typedef
+          test -f /opt/trinity/include/tdeuniqueapplication.h || {
+            printf '#include "kuniqueapplication.h"\ntypedef KUniqueApplication TDEUniqueApplication;\n' > /opt/trinity/include/tdeuniqueapplication.h
+          }
+          ls /opt/trinity/include/tdeglobalaccel.h /opt/trinity/include/tdeprocess.h \
+             /opt/trinity/include/tdestandarddirs.h /opt/trinity/include/tdesimpleconfig.h \
+             /opt/trinity/include/tdeuniqueapplication.h
+
       - name: Checkout tdebase and overlay klipper sources
         run: |
           git clone --depth 1 --branch "${{ github.event.inputs.tdebase_branch || 'master' }}" \
@@ -69,6 +85,7 @@ jobs:
             -B /tmp/tdebase/build
 
       - name: Build klipper (keep going, expose all problems)
+        shell: bash
         run: |
           cd /tmp/tdebase
           set +e
