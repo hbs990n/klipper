@@ -67,8 +67,6 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#include <X11/keysym.h>
-#include <X11/extensions/XTest.h>
 
 #include <kclipboard.h>
 
@@ -132,7 +130,6 @@ KlipperWidget::KlipperWidget( TQWidget *parent, TDEConfig* config )
     , m_config( config )
     , m_pendingContentsCheck( false )
     , session_managed( new KlipperSessionManaged( this ))
-    , m_pendingUserPaste( false )
 {
     tqt_qclipboard_bailout_hack = true;
 
@@ -147,7 +144,6 @@ KlipperWidget::KlipperWidget( TQWidget *parent, TDEConfig* config )
     m_overflowClearTimer.start( 1000 );
     connect( &m_pendingCheckTimer, TQ_SIGNAL( timeout()), TQ_SLOT( slotCheckPending()));
     connect( &m_setClipboardTimer, TQ_SIGNAL( timeout()), TQ_SLOT( slotDelayedSetClipboard()));
-    connect( &m_autoPasteTimer, TQ_SIGNAL( timeout()), TQ_SLOT( simulatePaste()));
 
     m_history = new History( this, "main_history" );
 
@@ -220,7 +216,6 @@ KlipperWidget::KlipperWidget( TQWidget *parent, TDEConfig* config )
 
     KlipperPopup* popup = history()->popup();
     connect ( history(),  TQ_SIGNAL( topChanged() ), TQ_SLOT( slotHistoryTopChanged() ) );
-    connect( history(), TQ_SIGNAL( topSelected() ), this, TQ_SLOT( markUserPastePending() ) );
     connect( popup, TQ_SIGNAL( aboutToHide() ), TQ_SLOT( slotStartHideTimer() ) );
     connect( popup, TQ_SIGNAL( aboutToShow() ), TQ_SLOT( slotStartShowTimer() ) );
 
@@ -697,35 +692,6 @@ void KlipperWidget::slotHistoryTopChanged() {
         slotRepeatAction();
     }
 
-    // The user picked this item from the popup menu: after the clipboard
-    // is set, auto-paste it into the widget that has focus.
-    if ( m_pendingUserPaste ) {
-        m_pendingUserPaste = false;
-        // Delay a bit so the popup menu has closed and keyboard focus has
-        // returned to the previously focused window.
-        m_autoPasteTimer.start( 150, true );
-    }
-}
-
-void KlipperWidget::markUserPastePending() {
-    m_pendingUserPaste = true;
-}
-
-void KlipperWidget::simulatePaste() {
-    Display* dpy = XOpenDisplay( 0L );
-    if ( !dpy ) {
-        return;
-    }
-    KeyCode ctrl = XKeysymToKeycode( dpy, XK_Control_L );
-    KeyCode v = XKeysymToKeycode( dpy, XK_v );
-    if ( ctrl && v ) {
-        XTestFakeKeyEvent( dpy, ctrl, True,  CurrentTime );
-        XTestFakeKeyEvent( dpy, v,     True,  CurrentTime );
-        XTestFakeKeyEvent( dpy, v,     False, CurrentTime );
-        XTestFakeKeyEvent( dpy, ctrl,  False, CurrentTime );
-        XFlush( dpy );
-    }
-    XCloseDisplay( dpy );
 }
 
 void KlipperWidget::slotClearClipboard()

@@ -59,7 +59,7 @@ configure_file( ${TDE_CMAKE_TEMPLATES}/tde_dummy_cpp.cmake dummy.cpp COPYONLY )
 
 tde_add_tdeinit_executable( klipper AUTOMOC
   SOURCES dummy.cpp
-  LINK ${TQT_LIBRARIES} X11 Xtst
+  LINK ${TQT_LIBRARIES}
   EMBED klipper_common-static
 )
 
@@ -68,7 +68,7 @@ tde_add_tdeinit_executable( klipper AUTOMOC
 
 tde_add_kpart( klipper_panelapplet AUTOMOC
   SOURCES applet.cpp applet.skel
-  LINK ${TQT_LIBRARIES} X11 Xtst klipper_common-static
+  LINK ${TQT_LIBRARIES} klipper_common-static
   DESTINATION ${PLUGIN_INSTALL_DIR}
 )
 
@@ -81,5 +81,5 @@ tde_add_library( klipper_common STATIC_PIC AUTOMOC
     toplevel.skel clipboardpoll.cpp history.cpp historyitem.cpp
     historystringitem.cpp klipperpopup.cpp popupproxy.cpp
     historyimageitem.cpp historyurlitem.cpp
-  LINK tdeio-shared ${XFIXES_LIBRARIES} Xtst
+  LINK tdeio-shared ${XFIXES_LIBRARIES}
 )
